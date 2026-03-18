@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super U × Kappeler Enseignes — Couverture Nationale</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --red: #E2001A;
+            --green: #009639;
+            --navy: #1a1a2e;
+            --gray-bg: #f0f4f8;
+            --gray-100: #f7f8fa;
+            --gray-200: #e8ecf1;
+            --gray-300: #d1d8e0;
+            --gray-600: #6b7280;
+            --radius: 12px;
+            --shadow: 0 2px 12px rgba(0,0,0,.08);
+        }
+        html { font-size: 15px; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--gray-100);
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* ── Header ── */
+        header {
+            background: #fff;
+            border-bottom: 3px solid var(--red);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .logo-superu {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-weight: 800;
+            font-size: 1.65rem;
+            letter-spacing: -1px;
+        }
+        .su-super { color: var(--red); }
+        .su-u { color: var(--green); }
+        .header-x {
+            font-size: 1.3rem;
+            color: var(--gray-300);
+            font-weight: 300;
+        }
+        .logo-kappeler img {
+            height: 36px;
+            object-fit: contain;
+        }
+        .logo-kappeler-fallback {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--navy);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: none;
+        }
+        header h1 {
+            font-size: .95rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            letter-spacing: .3px;
+        }
+
+        /* ── Main grid ── */
+        main {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 0;
+            min-height: calc(100vh - 68px);
+        }
+
+        /* ── Map panel ── */
+        .map-panel {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #fff;
+        }
+        #map {
+            width: 100%;
+            max-height: calc(100vh - 108px);
+        }
+
+        /* ── Tooltip ── */
+        .tooltip {
+            position: fixed;
+            pointer-events: none;
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 10px 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+            font-size: .82rem;
+            line-height: 1.5;
+            opacity: 0;
+            transition: opacity .15s;
+            z-index: 100;
+            max-width: 240px;
+        }
+        .tooltip.visible { opacity: 1; }
+        .tt-city { font-weight: 700; font-size: .9rem; }
+        .tt-city small { color: var(--gray-600); font-weight: 400; }
+        .tt-partner { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+        .tt-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .tt-badge {
+            display: inline-block;
+            background: var(--navy);
+            color: #fff;
+            font-size: .68rem;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        /* ── Sidebar ── */
+        .index-panel {
+            background: var(--gray-100);
+            border-left: 1px solid var(--gray-200);
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 68px);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .sidebar-title {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--gray-600);
+            margin-bottom: 2px;
+        }
+
+        /* ── Partner cards ── */
+        .partner-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color .2s, transform .15s;
+        }
+        .partner-card:hover { transform: translateY(-1px); }
+        .partner-card.active { border-color: currentColor; }
+        .partner-card.kappeler-card { color: var(--navy); }
+        .partner-card.resosign-card { color: var(--red); }
+        .partner-card.reflet-card { color: var(--green); }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .card-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        .card-logo-fallback {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .card-header h3 {
+            font-size: .95rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .card-subtitle {
+            font-size: .75rem;
+            color: var(--gray-600);
+            margin-top: 1px;
+        }
+        .card-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .card-stat {
+            background: var(--gray-100);
+            border-radius: 8px;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        .card-stat strong {
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+        .card-stat span {
+            font-size: .68rem;
+            color: var(--gray-600);
+        }
+
+        /* ── Legend ── */
+        .legend {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            box-shadow: var(--shadow);
+        }
+        .legend h4 {
+            font-size: .78rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray-600);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 0;
+            font-size: .82rem;
+        }
+        .legend-dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .legend-dot.hq {
+            width: 16px; height: 16px;
+            box-shadow: 0 0 0 3px rgba(0,0,0,.08);
+        }
+        .legend-zone {
+            width: 22px; height: 14px;
+            border-radius: 3px;
+            background: rgba(26,26,46,.12);
+            border: 1.5px dashed var(--navy);
+            flex-shrink: 0;
+        }
+
+        /* ── Stats summary ── */
+        .stats-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .stat-box {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 14px 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .stat-box strong {
+            display: block;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--navy);
+        }
+        .stat-box span {
+            font-size: .68rem;
+            color: var(--gray-600);
+        }
+
+        /* ── SVG Animations ── */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.3); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .city-point { opacity: 0; }
+        .city-point.visible {
+            animation: popIn .4s ease-out forwards;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            main { grid-template-columns: 1fr 320px; }
+        }
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: 60vh auto;
+            }
+            .map-panel { padding: 10px; }
+            .index-panel {
+                max-height: none;
+                border-left: none;
+                border-top: 1px solid var(--gray-200);
+            }
+            header h1 { font-size: .82rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-left">
+        <div class="logo-superu">
+            <span class="su-super">Super&nbsp;</span><span class="su-u">U</span>
+        </div>
+        <span class="header-x">&times;</span>
+        <div class="logo-kappeler">
+            <img src="https://www.kappeler.eu/logo-kappeler.png" alt="Kappeler Enseignes"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <span class="logo-kappeler-fallback">Kappeler</span>
+        </div>
+    </div>
+    <h1>Couverture nationale d'installation d'enseignes</h1>
+</header>
+
+<main>
+    <section class="map-panel">
+        <svg id="map" viewBox="0 0 800 850" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7"
+                        refX="9" refY="3.5" orient="auto" fill="#E2001A">
+                    <polygon points="0 0, 10 3.5, 0 7" />
+                </marker>
+            </defs>
+        </svg>
+        <div class="tooltip" id="tooltip"></div>
+    </section>
+
+    <aside class="index-panel">
+        <p class="sidebar-title">Partenaires Poseurs</p>
+
+        <div class="partner-card kappeler-card" data-partner="kappeler">
+            <div class="card-header">
+                <img class="card-logo" src="https://www.kappeler.eu/logo-kappeler.png" alt="Kappeler"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="card-logo-fallback" style="background:var(--navy)">K</div>
+                <div>
+                    <h3>Kappeler Enseignes</h3>
+                    <p class="card-subtitle">Fabricant &amp; Poseur &mdash; Zone Est</p>
+                </div>
+            </div>
+            <div class="card-stats">
+                <div class="card-stat"><strong>30 000+</strong><span>projets</span></div>
+                <div class="card-stat"><strong>1962</strong><span>cr&eacute;ation</span></div>
+            </div>
+        </div>
+
+        <div class="partner-card resosign-card" data-partner="resosign">
+            <div class="card-header">
+                <img class="card-logo" style="border-radius:50%"
+                     src="https://cdn.prod.website-files.com/67889bb94d2771d3f9e0bd55/6788aecf2bad33ba54e77bd6_logo%20rond%203%201.png"
+                     alt="RESOsign"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="card-logo-fallback" style="background:var(--red);border-radius:50%">R</div>
+                <div>
+                    <h3>RESOsign</h3>
+                    <p class="card-subtitle">R&eacute;seau M&eacute;diapplicateurs</p>
+                </div>
+            </div>
+            <div class="card-stats">
+                <div class="card-stat"><strong>650</strong><span>experts poseurs</span></div>
+                <div class="card-stat"><strong>50/jour</strong><span>installations</span></div>
+            </div>
+        </div>
+
+        <div class="partner-card reflet-card" data-partner="reflet">
+            <div class="card-header">
+                <img class="card-logo" src="https://refletservices.fr/images/logo-reflet.png" alt="Reflet Services"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="card-logo-fallback" style="background:var(--green)">RS</div>
+                <div>
+                    <h3>Reflet Services</h3>
+                    <p class="card-subtitle">Poseur &amp; Installateur National</p>
+                </div>
+            </div>
+            <div class="card-stats">
+                <div class="card-stat"><strong>23+</strong><span>ans d'exp.</span></div>
+                <div class="card-stat"><strong>National</strong><span>couverture</span></div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h4>L&eacute;gende</h4>
+            <div class="legend-item">
+                <span class="legend-dot" style="background:var(--navy)"></span>
+                Kappeler Enseignes
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot" style="background:var(--red)"></span>
+                RESOsign
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot" style="background:var(--green)"></span>
+                Reflet Services
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot hq" style="background:var(--navy)"></span>
+                Si&egrave;ge social (pulsation)
+            </div>
+            <div class="legend-item">
+                <span class="legend-zone"></span>
+                Zone directe Kappeler
+            </div>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-box">
+                <strong id="city-count">0</strong>
+                <span>points</span>
+            </div>
+            <div class="stat-box">
+                <strong>3</strong>
+                <span>partenaires</span>
+            </div>
+            <div class="stat-box">
+                <strong>100%</strong>
+                <span>France</span>
+            </div>
+        </div>
+    </aside>
+</main>
+
+<script>
+(function() {
+    'use strict';
+
+    // ── Projection ──
+    function lonToX(lon) { return ((lon + 5.5) / 15) * 800; }
+    function latToY(lat) { return ((51.5 - lat) / 10.5) * 850; }
+    function proj(lat, lon) { return [lonToX(lon), latToY(lat)]; }
+
+    // ── France boundary (lat, lon) clockwise from Dunkerque ──
+    var franceBorder = [
+        [51.08,2.55],[50.93,1.60],[50.73,1.40],[50.45,1.55],[50.10,1.55],
+        [49.93,1.05],[49.76,0.36],[49.51,0.11],[49.45,-0.30],[49.28,-0.20],
+        [49.67,-1.25],[49.73,-1.94],[49.45,-1.75],[48.84,-1.53],
+        [48.65,-1.98],[48.73,-3.00],[48.45,-4.48],[48.02,-4.73],
+        [47.88,-4.33],[47.75,-3.37],[47.50,-2.85],[47.28,-2.50],
+        [47.08,-2.13],[46.72,-2.35],[46.50,-1.79],[46.30,-1.23],
+        [46.16,-1.15],[46.00,-1.18],[45.62,-1.20],[45.20,-1.15],
+        [44.66,-1.25],[44.20,-1.38],[43.70,-1.50],[43.48,-1.56],
+        [43.35,-1.78],[42.97,-0.40],[42.77,0.72],[42.50,1.52],[42.44,3.15],
+        [43.07,3.04],[43.27,3.52],[43.38,3.98],[43.38,4.35],[43.33,4.85],
+        [43.20,5.35],[43.07,5.93],[43.42,6.75],[43.70,7.28],[43.78,7.52],
+        [44.13,7.58],[44.47,6.93],[44.90,6.64],[45.20,6.72],[45.50,6.88],
+        [45.83,6.88],[46.21,6.15],[46.55,6.15],[46.90,6.35],[47.35,7.15],
+        [47.55,7.55],[47.85,7.55],[48.40,7.80],[48.97,8.00],[49.05,7.97],
+        [49.20,7.38],[49.36,6.37],[49.52,5.80],[49.56,5.37],[49.70,4.94],
+        [50.07,4.84],[50.28,4.00],[50.37,3.52]
+    ];
+
+    // ── Corsica ──
+    var corsicaBorder = [
+        [43.00,9.40],[42.70,9.48],[42.25,9.40],[41.42,9.18],
+        [41.58,8.80],[41.92,8.57],[42.15,8.57],[42.57,8.73],[42.97,9.35]
+    ];
+
+    // ── City data ──
+    var colors = { kappeler:'#1a1a2e', resosign:'#E2001A', reflet:'#009639' };
+    var partnerNames = { kappeler:'Kappeler Enseignes', resosign:'RESOsign', reflet:'Reflet Services' };
+    var cities = [
+        // Kappeler (25)
+        {n:"Fegersheim",lat:48.49,lon:7.68,p:"kappeler",hq:true},
+        {n:"Strasbourg",lat:48.57,lon:7.75,p:"kappeler"},
+        {n:"Colmar",lat:48.08,lon:7.36,p:"kappeler"},
+        {n:"Mulhouse",lat:47.75,lon:7.34,p:"kappeler"},
+        {n:"Metz",lat:49.12,lon:6.18,p:"kappeler"},
+        {n:"Nancy",lat:48.69,lon:6.18,p:"kappeler"},
+        {n:"Reims",lat:49.25,lon:3.88,p:"kappeler"},
+        {n:"Dijon",lat:47.32,lon:5.04,p:"kappeler"},
+        {n:"Besançon",lat:47.24,lon:6.02,p:"kappeler"},
+        {n:"Belfort",lat:47.64,lon:6.86,p:"kappeler"},
+        {n:"Troyes",lat:48.30,lon:4.07,p:"kappeler"},
+        {n:"Épinal",lat:48.17,lon:6.45,p:"kappeler"},
+        {n:"Charleville-Mézières",lat:49.77,lon:4.72,p:"kappeler"},
+        {n:"Thionville",lat:49.36,lon:6.17,p:"kappeler"},
+        {n:"Haguenau",lat:48.82,lon:7.79,p:"kappeler"},
+        {n:"Saint-Dié",lat:48.29,lon:6.95,p:"kappeler"},
+        {n:"Montbéliard",lat:47.51,lon:6.80,p:"kappeler"},
+        {n:"Châlons-en-Ch.",lat:48.96,lon:4.36,p:"kappeler"},
+        {n:"Lons-le-Saunier",lat:46.67,lon:5.55,p:"kappeler"},
+        {n:"Auxerre",lat:47.80,lon:3.57,p:"kappeler"},
+        {n:"Chaumont",lat:48.11,lon:5.14,p:"kappeler"},
+        {n:"Verdun",lat:49.16,lon:5.38,p:"kappeler"},
+        {n:"Bar-le-Duc",lat:48.77,lon:5.16,p:"kappeler"},
+        {n:"Sélestat",lat:48.26,lon:7.45,p:"kappeler"},
+        {n:"Sarreguemines",lat:49.11,lon:7.07,p:"kappeler"},
+
+        // RESOsign (40)
+        {n:"Marseille",lat:43.30,lon:5.37,p:"resosign",hq:true},
+        {n:"Paris",lat:48.86,lon:2.35,p:"resosign"},
+        {n:"Lyon",lat:45.76,lon:4.83,p:"resosign"},
+        {n:"Toulouse",lat:43.60,lon:1.44,p:"resosign"},
+        {n:"Bordeaux",lat:44.84,lon:-0.58,p:"resosign"},
+        {n:"Nantes",lat:47.22,lon:-1.55,p:"resosign"},
+        {n:"Rennes",lat:48.11,lon:-1.68,p:"resosign"},
+        {n:"Lille",lat:50.63,lon:3.06,p:"resosign"},
+        {n:"Montpellier",lat:43.61,lon:3.88,p:"resosign"},
+        {n:"Nice",lat:43.71,lon:7.27,p:"resosign"},
+        {n:"Toulon",lat:43.12,lon:5.93,p:"resosign"},
+        {n:"Rouen",lat:49.44,lon:1.10,p:"resosign"},
+        {n:"Clermont-Ferrand",lat:45.78,lon:3.08,p:"resosign"},
+        {n:"Grenoble",lat:45.19,lon:5.72,p:"resosign"},
+        {n:"Saint-Étienne",lat:45.44,lon:4.39,p:"resosign"},
+        {n:"Perpignan",lat:42.69,lon:2.90,p:"resosign"},
+        {n:"Nîmes",lat:43.84,lon:4.36,p:"resosign"},
+        {n:"Avignon",lat:43.95,lon:4.81,p:"resosign"},
+        {n:"Aix-en-Provence",lat:43.53,lon:5.45,p:"resosign"},
+        {n:"Cannes",lat:43.55,lon:7.01,p:"resosign"},
+        {n:"Le Havre",lat:49.49,lon:0.11,p:"resosign"},
+        {n:"Amiens",lat:49.89,lon:2.30,p:"resosign"},
+        {n:"Béziers",lat:43.34,lon:3.22,p:"resosign"},
+        {n:"Valence",lat:44.93,lon:4.89,p:"resosign"},
+        {n:"Chambéry",lat:45.56,lon:5.92,p:"resosign"},
+        {n:"Annecy",lat:45.90,lon:6.13,p:"resosign"},
+        {n:"Bourges",lat:47.08,lon:2.40,p:"resosign"},
+        {n:"Vichy",lat:46.13,lon:3.43,p:"resosign"},
+        {n:"Cahors",lat:44.45,lon:1.44,p:"resosign"},
+        {n:"Agen",lat:44.20,lon:0.62,p:"resosign"},
+        {n:"Bayonne",lat:43.49,lon:-1.47,p:"resosign"},
+        {n:"Périgueux",lat:45.18,lon:0.72,p:"resosign"},
+        {n:"Angoulême",lat:45.65,lon:0.16,p:"resosign"},
+        {n:"Bourg-en-Bresse",lat:46.21,lon:5.23,p:"resosign"},
+        {n:"Mâcon",lat:46.31,lon:4.83,p:"resosign"},
+        {n:"Tarbes",lat:43.23,lon:0.07,p:"resosign"},
+        {n:"Mont-de-Marsan",lat:43.89,lon:-0.50,p:"resosign"},
+        {n:"Dax",lat:43.71,lon:-1.05,p:"resosign"},
+        {n:"Auch",lat:43.65,lon:0.59,p:"resosign"},
+        {n:"Libourne",lat:44.92,lon:-0.24,p:"resosign"},
+
+        // Reflet Services (35)
+        {n:"Ploemeur",lat:47.73,lon:-3.43,p:"reflet",hq:true},
+        {n:"Vannes",lat:47.66,lon:-2.76,p:"reflet"},
+        {n:"Brest",lat:48.39,lon:-4.49,p:"reflet"},
+        {n:"Caen",lat:49.18,lon:-0.37,p:"reflet"},
+        {n:"Le Mans",lat:48.00,lon:0.20,p:"reflet"},
+        {n:"Tours",lat:47.39,lon:0.69,p:"reflet"},
+        {n:"Limoges",lat:45.83,lon:1.26,p:"reflet"},
+        {n:"Poitiers",lat:46.58,lon:0.34,p:"reflet"},
+        {n:"La Rochelle",lat:46.16,lon:-1.15,p:"reflet"},
+        {n:"Angers",lat:47.47,lon:-0.56,p:"reflet"},
+        {n:"Orléans",lat:47.90,lon:1.90,p:"reflet"},
+        {n:"Pau",lat:43.30,lon:-0.37,p:"reflet"},
+        {n:"Saint-Brieuc",lat:48.51,lon:-2.76,p:"reflet"},
+        {n:"Quimper",lat:47.97,lon:-4.10,p:"reflet"},
+        {n:"Lorient",lat:47.75,lon:-3.37,p:"reflet"},
+        {n:"Saint-Nazaire",lat:47.27,lon:-2.21,p:"reflet"},
+        {n:"Cholet",lat:47.06,lon:-0.88,p:"reflet"},
+        {n:"Niort",lat:46.33,lon:-0.46,p:"reflet"},
+        {n:"Châteauroux",lat:46.81,lon:1.69,p:"reflet"},
+        {n:"Blois",lat:47.59,lon:1.33,p:"reflet"},
+        {n:"Chartres",lat:48.46,lon:1.48,p:"reflet"},
+        {n:"Cherbourg",lat:49.64,lon:-1.62,p:"reflet"},
+        {n:"Alençon",lat:48.43,lon:0.09,p:"reflet"},
+        {n:"Laval",lat:48.07,lon:-0.77,p:"reflet"},
+        {n:"Saint-Malo",lat:48.65,lon:-2.00,p:"reflet"},
+        {n:"La Roche-sur-Yon",lat:46.67,lon:-1.43,p:"reflet"},
+        {n:"Rochefort",lat:45.94,lon:-0.96,p:"reflet"},
+        {n:"Saintes",lat:45.75,lon:-0.63,p:"reflet"},
+        {n:"Cognac",lat:45.70,lon:-0.33,p:"reflet"},
+        {n:"Guéret",lat:46.17,lon:1.87,p:"reflet"},
+        {n:"Rodez",lat:44.35,lon:2.57,p:"reflet"},
+        {n:"Aurillac",lat:44.93,lon:2.44,p:"reflet"},
+        {n:"Montauban",lat:44.02,lon:1.35,p:"reflet"},
+        {n:"Saint-Lô",lat:49.12,lon:-1.09,p:"reflet"},
+        {n:"Évreux",lat:49.02,lon:1.15,p:"reflet"}
+    ];
+
+    // ── Kappeler zone Bézier arc ──
+    var ARC_P0 = proj(50.63, 3.06);  // Lille
+    var ARC_P3 = proj(45.76, 4.83);  // Lyon
+    var ARC_CP1 = [ARC_P0[0] - 40, ARC_P0[1] + 130];
+    var ARC_CP2 = [ARC_P3[0] - 60, ARC_P3[1] - 130];
+
+    function bezierX(t) {
+        var mt = 1 - t;
+        return mt*mt*mt*ARC_P0[0] + 3*mt*mt*t*ARC_CP1[0] + 3*mt*t*t*ARC_CP2[0] + t*t*t*ARC_P3[0];
+    }
+    function bezierY(t) {
+        var mt = 1 - t;
+        return mt*mt*mt*ARC_P0[1] + 3*mt*mt*t*ARC_CP1[1] + 3*mt*t*t*ARC_CP2[1] + t*t*t*ARC_P3[1];
+    }
+
+    function isInKappelerZone(x, y) {
+        if (y < ARC_P0[1] - 5 || y > ARC_P3[1] + 5) return false;
+        var lo = 0, hi = 1;
+        for (var i = 0; i < 30; i++) {
+            var mid = (lo + hi) / 2;
+            if (bezierY(mid) < y) lo = mid; else hi = mid;
+        }
+        return x > bezierX((lo + hi) / 2) - 8;
+    }
+
+    // ── SVG helpers ──
+    var svg = document.getElementById('map');
+    var NS = 'http://www.w3.org/2000/svg';
+
+    function el(tag, attrs, parent) {
+        var e = document.createElementNS(NS, tag);
+        if (attrs) {
+            var keys = Object.keys(attrs);
+            for (var i = 0; i < keys.length; i++) {
+                e.setAttribute(keys[i], attrs[keys[i]]);
+            }
+        }
+        (parent || svg).appendChild(e);
+        return e;
+    }
+
+    // Catmull-Rom to smooth SVG closed path
+    function smoothPath(points) {
+        var n = points.length;
+        var d = ['M ' + points[0][0].toFixed(1) + ',' + points[0][1].toFixed(1)];
+        for (var i = 0; i < n; i++) {
+            var p0 = points[(i - 1 + n) % n];
+            var p1 = points[i];
+            var p2 = points[(i + 1) % n];
+            var p3 = points[(i + 2) % n];
+            var cp1x = p1[0] + (p2[0] - p0[0]) / 6;
+            var cp1y = p1[1] + (p2[1] - p0[1]) / 6;
+            var cp2x = p2[0] - (p3[0] - p1[0]) / 6;
+            var cp2y = p2[1] - (p3[1] - p1[1]) / 6;
+            d.push('C ' + cp1x.toFixed(1) + ',' + cp1y.toFixed(1) +
+                   ' ' + cp2x.toFixed(1) + ',' + cp2y.toFixed(1) +
+                   ' ' + p2[0].toFixed(1) + ',' + p2[1].toFixed(1));
+        }
+        d.push('Z');
+        return d.join(' ');
+    }
+
+    // ── 1. France outline ──
+    var franceGroup = el('g', {id:'france-layer'});
+    var francePts = [];
+    for (var i = 0; i < franceBorder.length; i++) {
+        francePts.push(proj(franceBorder[i][0], franceBorder[i][1]));
+    }
+    var franceOutline = el('path', {
+        d: smoothPath(francePts),
+        fill: '#f0f4f8',
+        stroke: '#bfc8d6',
+        'stroke-width': '2',
+        'stroke-linejoin': 'round'
+    }, franceGroup);
+
+    // Corsica
+    var corsicaPts = [];
+    for (var i = 0; i < corsicaBorder.length; i++) {
+        corsicaPts.push(proj(corsicaBorder[i][0], corsicaBorder[i][1]));
+    }
+    el('path', {
+        d: smoothPath(corsicaPts),
+        fill: '#f0f4f8',
+        stroke: '#bfc8d6',
+        'stroke-width': '1.5',
+        'stroke-linejoin': 'round'
+    }, franceGroup);
+
+    // ── 2. Kappeler zone ──
+    var zoneGroup = el('g', {id:'zone-layer', opacity:'0'});
+
+    var eastBorderLatLon = [
+        [50.63,3.06],
+        [50.37,3.52],[50.28,4.00],[50.07,4.84],[49.70,4.94],[49.56,5.37],
+        [49.52,5.80],[49.36,6.37],[49.20,7.38],[49.05,7.97],[48.97,8.00],
+        [48.40,7.80],[47.85,7.55],[47.55,7.55],[47.35,7.15],[46.90,6.35],
+        [46.55,6.15],[46.21,6.15],[45.83,6.88],
+        [45.76,4.83]
+    ];
+    var eastPts = [];
+    for (var i = 0; i < eastBorderLatLon.length; i++) {
+        eastPts.push(proj(eastBorderLatLon[i][0], eastBorderLatLon[i][1]));
+    }
+
+    var zonePath = 'M ' + ARC_P0[0].toFixed(1) + ',' + ARC_P0[1].toFixed(1);
+    zonePath += ' C ' + ARC_CP1[0].toFixed(1) + ',' + ARC_CP1[1].toFixed(1) +
+                ' ' + ARC_CP2[0].toFixed(1) + ',' + ARC_CP2[1].toFixed(1) +
+                ' ' + ARC_P3[0].toFixed(1) + ',' + ARC_P3[1].toFixed(1);
+    for (var i = eastPts.length - 2; i >= 1; i--) {
+        zonePath += ' L ' + eastPts[i][0].toFixed(1) + ',' + eastPts[i][1].toFixed(1);
+    }
+    zonePath += ' Z';
+
+    el('path', {
+        d: zonePath,
+        fill: 'rgba(26,26,46,0.10)',
+        stroke: 'none'
+    }, zoneGroup);
+
+    // Zone label
+    var labelPos = proj(48.2, 6.5);
+    var labelText = el('text', {
+        x: String(labelPos[0]),
+        y: String(labelPos[1]),
+        'text-anchor': 'middle',
+        fill: '#1a1a2e',
+        'font-size': '13',
+        'font-weight': '700',
+        'font-family': 'Inter, sans-serif',
+        'letter-spacing': '3',
+        opacity: '0.55'
+    }, zoneGroup);
+    labelText.textContent = 'ZONE KAPPELER';
+
+    // ── 3. Arc delimiter (dashed) ──
+    el('path', {
+        id: 'arc-path',
+        d: 'M ' + ARC_P0[0].toFixed(1) + ',' + ARC_P0[1].toFixed(1) +
+           ' C ' + ARC_CP1[0].toFixed(1) + ',' + ARC_CP1[1].toFixed(1) +
+           ' ' + ARC_CP2[0].toFixed(1) + ',' + ARC_CP2[1].toFixed(1) +
+           ' ' + ARC_P3[0].toFixed(1) + ',' + ARC_P3[1].toFixed(1),
+        fill: 'none',
+        stroke: '#1a1a2e',
+        'stroke-width': '2.5',
+        'stroke-dasharray': '10,6',
+        opacity: '0.6'
+    }, zoneGroup);
+
+    // ── 4. Arrows ──
+    var arrowGroup = el('g', {id:'arrow-layer', opacity:'0'});
+
+    var arrowData = [
+        {
+            from: [ARC_P0[0] - 25, ARC_P0[1] + 80],
+            cp:   [350, 140],
+            to:   [230, 230],
+            label: 'Normandie / Bretagne'
+        },
+        {
+            from: [ARC_P0[0] - 40, (ARC_P0[1] + ARC_P3[1]) / 2 - 30],
+            cp:   [340, 310],
+            to:   [245, 340],
+            label: 'Pays de la Loire'
+        },
+        {
+            from: [ARC_CP2[0] + 10, ARC_P3[1] - 50],
+            cp:   [400, 540],
+            to:   [310, 590],
+            label: 'Aquitaine / Occitanie'
+        },
+        {
+            from: [ARC_P3[0] + 10, ARC_P3[1] + 15],
+            cp:   [560, 560],
+            to:   [575, 630],
+            label: 'PACA'
+        }
+    ];
+
+    for (var a = 0; a < arrowData.length; a++) {
+        var ar = arrowData[a];
+        el('path', {
+            d: 'M ' + ar.from[0] + ',' + ar.from[1] +
+               ' Q ' + ar.cp[0] + ',' + ar.cp[1] +
+               ' ' + ar.to[0] + ',' + ar.to[1],
+            fill: 'none',
+            stroke: '#E2001A',
+            'stroke-width': '2.5',
+            'marker-end': 'url(#arrowhead)',
+            opacity: '0.7'
+        }, arrowGroup);
+
+        var tx = el('text', {
+            x: String(ar.to[0] + (ar.to[0] < 400 ? -8 : 8)),
+            y: String(ar.to[1] + (ar.to[1] < 400 ? -10 : 16)),
+            'text-anchor': ar.to[0] < 400 ? 'end' : 'start',
+            fill: '#E2001A',
+            'font-size': '10',
+            'font-weight': '600',
+            'font-family': 'Inter, sans-serif',
+            opacity: '0.8'
+        }, arrowGroup);
+        tx.textContent = ar.label;
+    }
+
+    // ── 5. City points ──
+    var pointsGroup = el('g', {id:'points-layer'});
+    var tooltip = document.getElementById('tooltip');
+
+    for (var ci = 0; ci < cities.length; ci++) {
+        (function(c, idx) {
+            var pos = proj(c.lat, c.lon);
+            c.x = pos[0];
+            c.y = pos[1];
+            c.inZone = c.p === 'kappeler' || isInKappelerZone(pos[0], pos[1]);
+
+            var g = el('g', {
+                class: 'city-point',
+                'data-index': String(idx),
+                'data-partner': c.p
+            }, pointsGroup);
+
+            // HQ pulse ring (SVG animate)
+            if (c.hq) {
+                var pulseCircle = el('circle', {
+                    cx: String(pos[0]),
+                    cy: String(pos[1]),
+                    r: '8',
+                    fill: 'none',
+                    stroke: colors[c.p],
+                    'stroke-width': '1.5',
+                    opacity: '0.3'
+                }, g);
+                var animR = document.createElementNS(NS, 'animate');
+                animR.setAttribute('attributeName', 'r');
+                animR.setAttribute('values', '8;16;8');
+                animR.setAttribute('dur', '2.5s');
+                animR.setAttribute('repeatCount', 'indefinite');
+                pulseCircle.appendChild(animR);
+                var animO = document.createElementNS(NS, 'animate');
+                animO.setAttribute('attributeName', 'opacity');
+                animO.setAttribute('values', '0.3;0;0.3');
+                animO.setAttribute('dur', '2.5s');
+                animO.setAttribute('repeatCount', 'indefinite');
+                pulseCircle.appendChild(animO);
+            }
+
+            // Dot
+            var r = c.hq ? 6 : 4;
+            el('circle', {
+                cx: String(pos[0]),
+                cy: String(pos[1]),
+                r: String(r),
+                fill: colors[c.p],
+                stroke: '#fff',
+                'stroke-width': c.hq ? '2' : '1.2',
+                class: 'dot'
+            }, g);
+
+            // Hit area
+            var hitArea = el('circle', {
+                cx: String(pos[0]),
+                cy: String(pos[1]),
+                r: '12',
+                fill: 'transparent',
+                style: 'cursor:pointer'
+            }, g);
+
+            hitArea.addEventListener('mouseenter', function(e) { showTooltip(c, e); });
+            hitArea.addEventListener('mousemove', moveTooltip);
+            hitArea.addEventListener('mouseleave', hideTooltip);
+        })(cities[ci], ci);
+    }
+
+    document.getElementById('city-count').textContent = String(cities.length);
+
+    // ── Tooltip (safe DOM methods) ──
+    function showTooltip(c, e) {
+        // Clear previous content
+        while (tooltip.firstChild) tooltip.removeChild(tooltip.firstChild);
+
+        // City name
+        var cityDiv = document.createElement('div');
+        cityDiv.className = 'tt-city';
+        cityDiv.textContent = c.n;
+        if (c.hq) {
+            var small = document.createElement('small');
+            small.textContent = ' (Siège)';
+            cityDiv.appendChild(small);
+        }
+        tooltip.appendChild(cityDiv);
+
+        // Partner
+        var partnerDiv = document.createElement('div');
+        partnerDiv.className = 'tt-partner';
+        var dot = document.createElement('span');
+        dot.className = 'tt-dot';
+        dot.style.backgroundColor = colors[c.p];
+        partnerDiv.appendChild(dot);
+        partnerDiv.appendChild(document.createTextNode(partnerNames[c.p]));
+        tooltip.appendChild(partnerDiv);
+
+        // Zone badge
+        if (c.inZone) {
+            var badge = document.createElement('div');
+            badge.className = 'tt-badge';
+            badge.textContent = 'Zone Kappeler';
+            tooltip.appendChild(badge);
+        }
+
+        tooltip.classList.add('visible');
+        moveTooltip(e);
+    }
+
+    function moveTooltip(e) {
+        var pad = 14;
+        var x = e.clientX + pad;
+        var y = e.clientY + pad;
+        var rect = tooltip.getBoundingClientRect();
+        if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - pad;
+        if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - pad;
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
+    }
+
+    function hideTooltip() {
+        tooltip.classList.remove('visible');
+    }
+
+    // ── Partner card interaction ──
+    var activePartner = null;
+    var cards = document.querySelectorAll('.partner-card');
+    for (var i = 0; i < cards.length; i++) {
+        (function(card) {
+            card.addEventListener('click', function() {
+                var p = card.getAttribute('data-partner');
+                if (activePartner === p) {
+                    activePartner = null;
+                    card.classList.remove('active');
+                    resetHighlight();
+                } else {
+                    activePartner = p;
+                    for (var j = 0; j < cards.length; j++) cards[j].classList.remove('active');
+                    card.classList.add('active');
+                    highlightPartner(p);
+                }
+            });
+        })(cards[i]);
+    }
+
+    function highlightPartner(p) {
+        var pts = document.querySelectorAll('.city-point');
+        for (var i = 0; i < pts.length; i++) {
+            var partner = pts[i].getAttribute('data-partner');
+            pts[i].style.opacity = partner === p ? '1' : '0.12';
+        }
+    }
+
+    function resetHighlight() {
+        var pts = document.querySelectorAll('.city-point');
+        for (var i = 0; i < pts.length; i++) {
+            pts[i].style.opacity = '';
+        }
+    }
+
+    // ── Entry animation ──
+    function animate() {
+        // 1. France outline trace
+        var len = franceOutline.getTotalLength();
+        franceOutline.style.strokeDasharray = String(len);
+        franceOutline.style.strokeDashoffset = String(len);
+        franceOutline.style.transition = 'stroke-dashoffset 1.8s ease-out';
+        requestAnimationFrame(function() {
+            franceOutline.style.strokeDashoffset = '0';
+        });
+
+        // 2. Zone fade-in
+        setTimeout(function() {
+            zoneGroup.style.transition = 'opacity .8s ease-out';
+            zoneGroup.setAttribute('opacity', '1');
+        }, 1200);
+
+        // 3. Arrows fade-in
+        setTimeout(function() {
+            arrowGroup.style.transition = 'opacity .6s ease-out';
+            arrowGroup.setAttribute('opacity', '1');
+        }, 1800);
+
+        // 4. Points staggered pop-in
+        var points = document.querySelectorAll('.city-point');
+        for (var i = 0; i < points.length; i++) {
+            (function(pt, delay) {
+                setTimeout(function() { pt.classList.add('visible'); }, delay);
+            })(points[i], 1400 + i * 18);
+        }
+    }
+
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(animate);
+    } else {
+        window.addEventListener('load', animate);
+    }
+})();
+</script>
+
+</body>
+</html>
