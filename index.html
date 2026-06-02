@@ -10,7 +10,7 @@
         *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
         :root{
             --red:#E2001A;--green:#009639;--navy:#1a1a2e;
-            --blue:#0054a6;--blue-light:#e8eef6;--blue-stroke:#2a5caa;
+            --blue:#0054a6;--blue-light:#e8eef6;--blue-stroke:#41598f;
             --g100:#f7f8fa;--g200:#e8ecf1;--g300:#d1d8e0;--g600:#6b7280;
             --radius:12px;--shadow:0 2px 12px rgba(0,0,0,.08);
         }
@@ -30,7 +30,7 @@
 
         /* ── Main ── */
         main{display:grid;grid-template-columns:1fr 380px;gap:0;min-height:calc(100vh - 62px)}
-        .map-panel{position:relative;display:flex;align-items:center;justify-content:center;padding:18px;background:#fff}
+        .map-panel{position:relative;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse 80% 70% at 50% 42%,#fdfdfb 0%,#f5f6fa 55%,#eef1f6 100%)}
         #map{width:100%;max-height:calc(100vh - 100px)}
 
         /* ── Tooltip ── */
@@ -56,13 +56,29 @@
         .card-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
         .card-stat{background:var(--g100);border-radius:8px;padding:7px 10px;text-align:center}
         .card-stat strong{display:block;font-size:1rem;font-weight:800}.card-stat span{font-size:.66rem;color:var(--g600)}
+        /* ── Menu déroulant « Réseau de pose » ── */
+        .dropdown{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+        .dropdown-header{width:100%;display:flex;align-items:center;gap:8px;padding:13px 14px;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left}
+        .dropdown-header:hover{background:var(--g100)}
+        .dd-title{font-size:.9rem;font-weight:700;color:var(--navy)}
+        .dd-sub{font-size:.7rem;color:var(--g600);flex:1}
+        .dd-chevron{color:var(--g600);transition:transform .25s ease;flex-shrink:0}
+        .dropdown.open .dd-chevron{transform:rotate(180deg)}
+        .dropdown-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+        .dropdown.open .dropdown-body{grid-template-rows:1fr}
+        .dropdown-inner{overflow:hidden;display:flex;flex-direction:column;gap:10px;padding:0 12px}
+        .dropdown.open .dropdown-inner{padding:2px 12px 12px}
+        .dropdown-inner .partner-card{box-shadow:none;border:1px solid var(--g200)}
+        .dropdown-inner .partner-card.active{border-color:currentColor}
         .legend{background:#fff;border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow)}
         .legend h4{font-size:.72rem;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;color:var(--g600)}
         .legend-item{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:.8rem}
         .legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
         .legend-dot.hq{width:16px;height:16px;box-shadow:0 0 0 3px rgba(0,0,0,.08)}
-        .legend-zone{width:22px;height:14px;border-radius:3px;flex-shrink:0;position:relative;overflow:hidden}
-        .legend-zone::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(26,26,46,.12),rgba(26,26,46,.12) 2px,rgba(26,26,46,.04) 2px,rgba(26,26,46,.04) 5px);border:1.5px dashed var(--navy)}
+        .legend-zone{width:22px;height:14px;border-radius:4px;flex-shrink:0;position:relative;overflow:hidden}
+        .legend-zone::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(51,74,122,.28),rgba(51,74,122,.08));border:1.5px dashed #334a7a;border-radius:4px}
+        .legend-zone.buffer::before{background:linear-gradient(135deg,rgba(227,162,58,.26),rgba(227,162,58,.10));border:1.5px dashed #e3a23a}
+        .legend-zone.rest::before{background:linear-gradient(135deg,rgba(126,147,182,.22),rgba(126,147,182,.08));border:1.5px solid rgba(126,147,182,.45)}
         .stats-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
         .stat-box{background:#fff;border-radius:var(--radius);padding:12px 10px;text-align:center;box-shadow:var(--shadow)}
         .stat-box strong{display:block;font-size:1.25rem;font-weight:800;color:var(--blue)}.stat-box span{font-size:.66rem;color:var(--g600)}
@@ -95,20 +111,41 @@
     <section class="map-panel">
         <svg id="map" viewBox="0 0 820 830" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" fill="#E2001A">
-                    <polygon points="0 0,10 3.5,0 7"/>
-                </marker>
-                <pattern id="hatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
-                    <rect width="7" height="7" fill="rgba(26,26,46,0.08)"/>
-                    <line x1="0" y1="0" x2="0" y2="7" stroke="rgba(26,26,46,0.25)" stroke-width="2"/>
-                </pattern>
                 <clipPath id="france-clip">
                     <use href="#france"/>
                 </clipPath>
+                <linearGradient id="franceFill" x1="0" y1="0" x2="0.6" y2="1">
+                    <stop offset="0" stop-color="#fbfcfe"/>
+                    <stop offset="1" stop-color="#eef2f9"/>
+                </linearGradient>
+                <!-- Voile zone Kappeler : dense au nord-est, fondu vers l'arc -->
+                <linearGradient id="zoneKappFill" gradientUnits="userSpaceOnUse" x1="790" y1="210" x2="470" y2="470">
+                    <stop offset="0" stop-color="#34508a" stop-opacity="0.34"/>
+                    <stop offset="1" stop-color="#34508a" stop-opacity="0.12"/>
+                </linearGradient>
+                <!-- Voile zone « prise en charge sur demande » : dégradé ambre -->
+                <linearGradient id="zoneBufFill" gradientUnits="userSpaceOnUse" x1="400" y1="220" x2="640" y2="620">
+                    <stop offset="0" stop-color="#e7a73c" stop-opacity="0.34"/>
+                    <stop offset="1" stop-color="#e7a73c" stop-opacity="0.14"/>
+                </linearGradient>
+                <!-- Voile « reste de la France » : neutre bleu-gris froid et clair -->
+                <linearGradient id="zoneRestFill" gradientUnits="userSpaceOnUse" x1="200" y1="320" x2="520" y2="760">
+                    <stop offset="0" stop-color="#7e93b6" stop-opacity="0.20"/>
+                    <stop offset="1" stop-color="#7e93b6" stop-opacity="0.08"/>
+                </linearGradient>
+                <filter id="franceShadow" x="-15%" y="-15%" width="130%" height="130%">
+                    <feDropShadow dx="0" dy="6" stdDeviation="13" flood-color="#16294d" flood-opacity="0.14"/>
+                </filter>
+                <filter id="ptShadow" x="-60%" y="-60%" width="220%" height="220%">
+                    <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#0b1424" flood-opacity="0.25"/>
+                </filter>
+                <filter id="labelShadow" x="-20%" y="-40%" width="140%" height="180%">
+                    <feDropShadow dx="0" dy="1.5" stdDeviation="2.5" flood-color="#1a1a2e" flood-opacity="0.18"/>
+                </filter>
             </defs>
             <!-- France outline (real GeoJSON data) -->
             <path id="france" d="M677.4,362.0L670.1,362.8L670.8,365.7L664.7,372.5L671.4,371.5L674.0,373.6L667.9,377.7L668.6,380.9L657.7,390.8L655.7,395.8L642.2,403.9L643.5,414.1L625.9,429.6L628.3,431.8L623.6,441.2L628.9,444.8L625.5,450.8L626.6,453.3L619.3,455.8L618.1,462.0L626.7,461.4L634.4,455.9L635.9,453.0L632.4,451.4L635.7,444.9L640.0,446.8L646.2,442.1L661.0,443.9L659.2,445.7L664.0,451.0L660.6,461.5L665.7,462.7L664.4,467.8L668.4,468.0L673.0,477.2L667.8,482.8L661.7,483.6L661.2,491.7L670.9,497.9L670.8,507.8L680.1,514.8L676.6,520.6L677.8,525.8L674.2,529.2L669.1,529.4L665.5,534.5L659.1,532.9L652.0,537.2L654.3,543.0L657.9,543.4L658.2,551.4L663.9,555.5L671.2,556.3L674.1,565.5L674.7,567.8L668.7,568.6L667.4,575.7L663.5,578.9L667.6,585.5L665.1,591.2L671.2,600.3L688.9,608.9L705.4,604.8L706.9,612.7L695.8,627.6L697.6,633.0L683.1,640.2L681.2,643.4L678.8,642.8L677.0,649.6L668.4,651.5L665.4,659.2L657.4,660.9L656.2,665.3L649.8,670.2L655.5,671.0L651.7,678.7L648.4,676.7L640.8,679.6L638.8,684.0L630.9,682.0L628.5,683.9L628.3,688.4L626.2,687.6L626.7,684.8L616.3,681.4L616.1,684.2L611.7,686.9L611.0,682.6L602.8,676.8L600.2,678.6L596.7,675.0L587.1,674.8L588.3,667.7L586.2,664.4L571.8,666.5L566.4,658.9L563.0,660.8L562.6,666.2L552.8,665.2L547.8,663.3L547.8,658.1L527.8,656.0L524.5,650.0L520.0,650.2L502.4,661.8L494.7,670.6L486.3,670.7L473.6,685.4L471.1,693.4L470.8,717.7L471.8,724.2L475.9,725.8L477.7,731.6L473.3,732.4L471.0,728.9L466.3,728.3L452.5,733.9L452.4,738.5L447.7,737.3L445.7,739.1L431.4,731.4L419.7,737.5L415.2,730.3L404.9,727.5L405.2,723.3L407.7,721.6L405.3,718.8L395.7,715.6L392.3,715.9L390.2,719.4L386.1,711.2L376.2,711.5L373.4,707.1L364.2,705.8L353.3,700.6L350.1,706.3L351.4,713.1L339.5,713.0L335.7,710.6L332.3,714.2L326.4,709.7L317.0,713.5L312.4,710.8L309.5,705.2L301.7,701.4L297.7,705.1L291.8,703.2L289.7,706.7L281.0,698.4L279.6,692.9L269.8,693.8L253.8,687.2L251.5,685.5L253.0,681.8L249.6,683.8L249.2,688.4L244.8,687.1L243.3,683.8L246.1,681.2L247.8,672.0L241.6,669.1L236.4,672.1L235.7,668.5L230.3,668.9L227.3,663.2L236.7,658.9L244.8,642.0L254.0,577.6L257.4,569.3L266.2,570.1L258.7,561.0L253.9,571.4L259.2,510.2L262.5,503.5L277.0,519.1L283.1,538.8L286.8,543.4L287.7,541.5L283.9,535.3L277.1,511.0L266.6,500.0L255.1,493.1L254.9,487.5L260.4,485.8L259.4,481.7L263.4,477.9L262.1,472.3L264.4,470.8L260.6,462.4L255.8,459.5L261.5,452.5L260.6,449.0L256.9,448.6L256.6,452.2L249.7,446.7L243.6,446.6L241.8,442.6L226.0,435.5L223.9,427.2L209.5,412.0L208.8,406.7L217.6,396.6L213.9,391.8L205.2,389.1L208.2,386.5L208.0,379.1L201.4,381.4L198.0,378.4L194.3,379.7L190.7,377.9L191.2,374.7L188.4,371.3L193.9,367.6L191.5,365.3L191.3,362.9L194.4,362.5L193.1,361.3L183.7,359.3L182.2,362.5L173.8,362.3L170.7,357.8L178.2,359.5L180.6,355.4L178.5,352.3L171.5,356.2L159.9,357.1L161.4,363.5L159.6,364.1L159.1,356.4L155.6,351.9L159.8,345.9L157.3,345.1L155.3,351.6L148.6,345.5L143.3,347.9L139.9,343.4L139.8,336.7L139.0,343.0L129.0,339.9L123.2,340.6L116.7,332.6L116.8,336.4L107.4,336.7L106.9,334.8L106.5,340.3L97.4,340.6L98.0,336.1L94.3,328.4L90.0,325.3L80.4,323.7L79.5,321.2L101.3,318.1L100.4,311.5L92.3,308.3L87.7,313.5L88.2,308.1L85.1,306.7L87.8,301.0L88.7,305.0L104.4,304.1L97.2,300.6L93.4,301.9L94.2,296.7L85.0,301.1L81.5,299.8L76.7,301.7L75.6,295.6L78.8,285.1L84.9,283.7L89.5,279.4L98.0,276.4L104.4,278.4L106.3,275.6L112.8,275.4L116.5,272.7L118.2,278.1L120.6,277.2L123.5,280.0L124.7,274.6L136.8,276.8L138.9,265.7L146.1,267.3L155.1,262.5L155.9,264.8L161.4,262.4L161.9,265.4L165.5,265.7L163.9,268.2L169.7,270.7L168.9,273.1L181.4,288.8L193.0,278.3L200.8,276.5L199.6,280.5L203.3,278.8L207.8,283.7L210.4,281.6L209.5,279.6L212.9,279.0L218.0,286.7L215.3,278.2L219.8,275.1L224.3,275.0L223.1,278.5L228.0,281.7L244.7,279.9L247.2,278.3L238.8,272.1L236.6,264.6L239.7,257.8L236.3,247.0L237.4,235.7L235.2,237.1L231.2,229.0L226.4,225.6L222.4,213.3L224.4,207.6L219.3,203.6L219.5,199.8L235.6,205.6L240.8,204.8L243.3,201.9L253.6,202.0L255.5,208.4L252.1,210.2L251.6,213.4L258.1,225.2L261.1,226.8L263.1,224.4L270.2,223.9L275.9,226.7L296.6,228.3L306.2,232.2L317.5,229.0L324.1,223.4L334.7,220.6L323.7,219.0L321.1,215.8L327.2,201.2L346.5,190.8L378.4,181.7L390.9,171.8L395.7,164.1L402.5,166.5L395.2,159.2L395.8,154.3L400.4,154.1L396.1,150.8L397.6,140.6L399.3,140.8L396.3,128.8L398.5,124.2L397.5,116.2L412.0,108.7L446.1,100.4L450.4,110.8L448.3,112.8L450.5,120.5L454.7,120.5L459.5,127.5L463.8,129.2L470.1,123.5L476.6,122.7L482.0,128.7L483.4,141.3L487.9,144.0L492.9,140.9L495.2,141.7L494.0,143.4L499.6,143.5L502.5,146.8L502.2,152.7L504.8,157.7L506.7,154.2L514.8,155.9L520.8,153.7L525.7,159.9L529.9,159.9L525.8,170.0L529.4,169.9L530.9,174.0L526.3,178.3L529.3,183.0L545.2,183.7L553.5,180.1L553.9,174.8L557.9,169.9L563.8,168.7L559.3,182.0L564.3,186.4L562.6,195.0L569.8,194.5L578.3,202.2L583.4,202.0L586.6,205.0L585.6,208.0L591.6,209.5L593.7,216.5L609.0,211.7L613.7,216.4L618.9,216.9L619.5,219.9L633.3,215.6L648.3,222.2L649.0,227.6L656.7,236.6L657.6,240.8L662.5,241.7L662.5,237.3L667.6,236.6L672.6,238.9L673.6,244.5L676.0,242.5L685.9,244.2L693.3,239.3L697.5,245.7L702.9,248.8L710.9,248.0L714.7,250.3L718.0,248.5L725.9,253.5L732.5,254.5L726.1,266.6L713.2,278.9L708.4,301.2L700.0,316.9L699.7,323.5L702.2,327.7L696.7,347.4L700.3,356.6L690.0,367.2L683.3,367.9L679.4,366.2L680.2,362.8L677.4,362.0Z M416.5,729.1L419.1,730.7L416.5,729.1Z M570.6,649.9L570.1,656.2L572.5,656.6L573.4,661.3L576.8,661.3L581.3,657.4L580.1,654.6L577.2,657.0L575.1,652.1L572.2,652.4L570.6,649.9Z M792.1,773.7L791.3,788.2L786.3,791.9L786.7,793.8L790.2,792.9L783.1,804.1L782.8,809.5L780.8,809.6L776.4,807.3L776.7,804.0L765.9,799.5L760.4,793.2L767.4,786.0L755.9,781.8L761.8,771.4L760.7,768.9L752.2,770.6L751.5,766.8L758.6,758.8L750.4,752.0L749.6,746.1L756.1,743.1L752.3,737.9L749.1,738.1L752.0,733.0L754.4,733.1L754.9,725.9L761.0,722.7L762.1,719.7L772.3,716.7L778.0,710.0L782.9,709.7L786.6,714.2L789.2,709.7L787.5,702.9L789.9,690.0L795.1,691.5L796.5,705.4L794.3,714.3L798.4,722.1L800.0,742.9L799.5,755.8L792.6,766.6L792.1,773.7Z M206.6,402.2L201.4,399.5L202.7,396.6L209.1,405.0L206.6,402.2Z M156.4,372.0L163.2,375.9L162.4,377.7L155.0,377.2L153.0,371.5L156.4,372.0Z M242.8,456.3L245.7,454.8L245.4,456.6L252.4,458.0L253.2,460.9L240.2,456.9L238.8,454.3L242.4,453.1L242.8,456.3Z M254.5,482.8L247.5,474.7L246.2,468.2L255.2,473.0L257.6,479.9L255.4,486.1L254.5,482.8Z"
-                  fill="var(--blue-light)" stroke="var(--blue-stroke)" stroke-width="2" stroke-linejoin="round"/>
+                  fill="url(#franceFill)" stroke="var(--blue-stroke)" stroke-width="1.4" stroke-linejoin="round" filter="url(#franceShadow)"/>
             <!-- Layers injected by JS below -->
         </svg>
         <div class="tooltip" id="tooltip"></div>
@@ -130,29 +167,39 @@
             </div>
         </div>
 
-        <div class="partner-card resosign-card" data-partner="resosign">
-            <div class="card-header">
-                <img class="card-logo" style="border-radius:50%" src="https://cdn.prod.website-files.com/67889bb94d2771d3f9e0bd55/6788aecf2bad33ba54e77bd6_logo%20rond%203%201.png" alt="RESOsign"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                <div class="card-logo-fb" style="background:var(--red);border-radius:50%">R</div>
-                <div><h3>RESOsign</h3><p class="card-subtitle">R&eacute;seau M&eacute;diapplicateurs</p></div>
-            </div>
-            <div class="card-stats">
-                <div class="card-stat"><strong>650</strong><span>experts poseurs</span></div>
-                <div class="card-stat"><strong>50/jour</strong><span>installations</span></div>
-            </div>
-        </div>
-
-        <div class="partner-card reflet-card" data-partner="reflet">
-            <div class="card-header">
-                <img class="card-logo" src="https://refletservices.fr/images/logo-reflet.png" alt="Reflet Services"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                <div class="card-logo-fb" style="background:var(--green)">RS</div>
-                <div><h3>Reflet Services</h3><p class="card-subtitle">Poseur &amp; Installateur National</p></div>
-            </div>
-            <div class="card-stats">
-                <div class="card-stat"><strong>23+</strong><span>ans d'exp.</span></div>
-                <div class="card-stat"><strong>National</strong><span>couverture</span></div>
+        <div class="dropdown" id="reseau-pose">
+            <button class="dropdown-header" type="button" aria-expanded="false" aria-controls="reseau-pose-body">
+                <span class="dd-title">R&eacute;seau de pose</span>
+                <span class="dd-sub">RESOsign &middot; Reflet Services</span>
+                <svg class="dd-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="dropdown-body" id="reseau-pose-body">
+                <div class="dropdown-inner">
+                    <div class="partner-card resosign-card" data-partner="resosign">
+                        <div class="card-header">
+                            <img class="card-logo" style="border-radius:50%" src="https://cdn.prod.website-files.com/67889bb94d2771d3f9e0bd55/6788aecf2bad33ba54e77bd6_logo%20rond%203%201.png" alt="RESOsign"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="card-logo-fb" style="background:var(--red);border-radius:50%">R</div>
+                            <div><h3>RESOsign</h3><p class="card-subtitle">R&eacute;seau M&eacute;diapplicateurs</p></div>
+                        </div>
+                        <div class="card-stats">
+                            <div class="card-stat"><strong>650</strong><span>experts poseurs</span></div>
+                            <div class="card-stat"><strong>50/jour</strong><span>installations</span></div>
+                        </div>
+                    </div>
+                    <div class="partner-card reflet-card" data-partner="reflet">
+                        <div class="card-header">
+                            <img class="card-logo" src="https://refletservices.fr/images/logo-reflet.png" alt="Reflet Services"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="card-logo-fb" style="background:var(--green)">RS</div>
+                            <div><h3>Reflet Services</h3><p class="card-subtitle">Poseur &amp; Installateur National</p></div>
+                        </div>
+                        <div class="card-stats">
+                            <div class="card-stat"><strong>23+</strong><span>ans d'exp.</span></div>
+                            <div class="card-stat"><strong>National</strong><span>couverture</span></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -163,6 +210,8 @@
             <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Reflet Services</div>
             <div class="legend-item"><span class="legend-dot hq" style="background:var(--navy)"></span>Si&egrave;ge (pulsation)</div>
             <div class="legend-item"><span class="legend-zone"></span>Zone directe Kappeler</div>
+            <div class="legend-item"><span class="legend-zone buffer"></span>Zone prise en charge sur demande</div>
+            <div class="legend-item"><span class="legend-zone rest"></span>Autres r&eacute;gions (r&eacute;seau national)</div>
         </div>
 
         <div class="stats-summary">
@@ -314,72 +363,69 @@
     var svg=document.getElementById('map'),NS='http://www.w3.org/2000/svg';
     function el(tag,a,p){var e=document.createElementNS(NS,tag);if(a)for(var k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
 
-    // ── Eastern border of France (from Lille to Lyon going east) ──
-    var eastBorder=[
-        [50.63,3.06],[50.37,3.52],[50.28,4.00],[50.07,4.84],[49.70,4.94],
-        [49.56,5.37],[49.52,5.80],[49.36,6.37],[49.20,7.38],[49.05,7.97],
-        [48.97,8.00],[48.40,7.80],[47.85,7.55],[47.55,7.55],[47.35,7.15],
-        [46.90,6.35],[46.55,6.15],[46.21,6.15],[45.83,6.88],[45.76,4.83]
+    // ── Limites hors-carte (déborder puis clipper au vrai contour France) ──
+    var MX0=-250,MX1=1070,MY0=-250,MY1=1080;
+    function nf(v){return (+v).toFixed(1)}
+    // Lissage Catmull-Rom → Bézier pour une frontière douce
+    function smooth(pts){
+        var d='M '+nf(pts[0][0])+','+nf(pts[0][1]);
+        for(var i=0;i<pts.length-1;i++){
+            var p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+            d+=' C '+nf(p1[0]+(p2[0]-p0[0])/6)+','+nf(p1[1]+(p2[1]-p0[1])/6)
+              +' '+nf(p2[0]-(p3[0]-p1[0])/6)+','+nf(p2[1]-(p3[1]-p1[1])/6)
+              +' '+nf(p2[0])+','+nf(p2[1]);
+        }
+        return d;
+    }
+
+    // ── Frontière « prise en charge » : côte nord (Le Havre) → centre → frontière est sud ──
+    var Jl=[
+        [X(0.6),MY0],          // au-dessus du Havre (hors carte)
+        [X(0.5),Y(49.5)],      // côte de la Manche (Le Havre)
+        [X(1.2),Y(47.6)],
+        [X(1.7),Y(46.6)],
+        [X(2.9),Y(45.7)],
+        [X(4.6),Y(45.1)],
+        [MX1,Y(44.9)]          // sortie sur la frontière est (hors carte)
     ];
+    var Jpath=smooth(Jl);
 
-    // ── Zone path: Bézier arc west + east border back ──
-    var zd='M '+P0[0].toFixed(1)+','+P0[1].toFixed(1);
-    zd+=' C '+CP1[0].toFixed(1)+','+CP1[1].toFixed(1)+' '+CP2[0].toFixed(1)+','+CP2[1].toFixed(1)+' '+P3[0].toFixed(1)+','+P3[1].toFixed(1);
-    for(var i=eastBorder.length-2;i>=1;i--)zd+=' L '+X(eastBorder[i][1]).toFixed(1)+','+Y(eastBorder[i][0]).toFixed(1);
-    zd+=' Z';
+    var arcF='C '+nf(CP1[0])+','+nf(CP1[1])+' '+nf(CP2[0])+','+nf(CP2[1])+' '+nf(P3[0])+','+nf(P3[1]); // P0→P3
+    var arcB='C '+nf(CP2[0])+','+nf(CP2[1])+' '+nf(CP1[0])+','+nf(CP1[1])+' '+nf(P0[0])+','+nf(P0[1]); // P3→P0
+    // Zone Kappeler (nord-est) — au-dessus/à droite de l'arc Lille→Lyon
+    var zdK='M '+nf(P0[0])+','+nf(MY0)+' L '+nf(MX1)+','+nf(MY0)+' L '+nf(MX1)+','+nf(P3[1])+' L '+nf(P3[0])+','+nf(P3[1])+' '+arcB+' Z';
+    // Zone « prise en charge » (ambre) — à l'est/au-dessus de la ligne J (Kappeler la recouvrira au NE)
+    var zdE=Jpath+' L '+nf(MX1)+','+nf(MY0)+' Z';
+    // Reste de la France (neutre) — à l'ouest/au sud de la ligne J
+    var zdW=Jpath+' L '+nf(MX1)+','+nf(MY1)+' L '+nf(MX0)+','+nf(MY1)+' L '+nf(MX0)+','+nf(MY0)+' Z';
 
-    // Zone group — clipped to France outline
+    // Empilement : reste (dessous) → prise en charge → Kappeler (dessus)
+    var rzg=el('g',{id:'zone-rest',opacity:'0','clip-path':'url(#france-clip)'});
+    el('path',{d:zdW,fill:'url(#zoneRestFill)',stroke:'none'},rzg);
+    // Masque : l'ambre s'arrête à la frontière de la zone Kappeler (pas de superposition au NE)
+    var defsEl=svg.querySelector('defs');
+    var bufMask=el('mask',{id:'bufMask',maskUnits:'userSpaceOnUse',x:'0',y:'0',width:'820',height:'830'},defsEl);
+    el('rect',{x:'0',y:'0',width:'820',height:'830',fill:'#fff'},bufMask);
+    el('path',{d:zdK,fill:'#000'},bufMask);
+    var bzg=el('g',{id:'zone-buffer',opacity:'0','clip-path':'url(#france-clip)',mask:'url(#bufMask)'});
+    el('path',{d:zdE,fill:'url(#zoneBufFill)',stroke:'none'},bzg);
+    el('path',{d:Jpath,fill:'none',stroke:'#d98a1f','stroke-width':'2','stroke-dasharray':'9,6','stroke-linecap':'round',opacity:'0.55'},bzg); // bord ouest de la zone ambre
     var zg=el('g',{id:'zone',opacity:'0','clip-path':'url(#france-clip)'});
-    // Hatched fill
-    el('path',{d:zd,fill:'url(#hatch)',stroke:'none'},zg);
-    // Darker semi-transparent overlay
-    el('path',{d:zd,fill:'rgba(26,26,46,0.06)',stroke:'none'},zg);
+    el('path',{d:zdK,fill:'url(#zoneKappFill)',stroke:'none'},zg);
+    el('path',{d:'M '+nf(P0[0])+','+nf(P0[1])+' '+arcF,fill:'none',stroke:'#334a7a','stroke-width':'2','stroke-dasharray':'9,6','stroke-linecap':'round',opacity:'0.6'},zg);
 
-    // Dashed arc
-    el('path',{
-        d:'M '+P0[0].toFixed(1)+','+P0[1].toFixed(1)+' C '+CP1[0].toFixed(1)+','+CP1[1].toFixed(1)+' '+CP2[0].toFixed(1)+','+CP2[1].toFixed(1)+' '+P3[0].toFixed(1)+','+P3[1].toFixed(1),
-        fill:'none',stroke:'#1a1a2e','stroke-width':'2.5','stroke-dasharray':'10,6',opacity:'0.7'
-    },zg);
-
-    // Label with background — placed inside visible zone area
-    var lx=X(5.8),ly=Y(48.0);
-    var zlg=el('g',{id:'zone-label'});
-    el('rect',{x:String(lx-80),y:String(ly-13),width:'160',height:'26',rx:'6',fill:'rgba(255,255,255,0.92)',stroke:'rgba(26,26,46,0.2)','stroke-width':'1'},zlg);
+    // Label « ZONE KAPPELER » (dans le nord-est)
+    var lx=X(5.3),ly=Y(49.2);
+    var zlg=el('g',{id:'zone-label',filter:'url(#labelShadow)'});
+    el('rect',{x:String(lx-82),y:String(ly-14),width:'164',height:'28',rx:'14',fill:'#fff',stroke:'rgba(26,26,46,0.18)','stroke-width':'1.5'},zlg);
     var lt=el('text',{x:String(lx),y:String(ly+5),'text-anchor':'middle',fill:'#1a1a2e','font-size':'13','font-weight':'800','font-family':'Inter,sans-serif','letter-spacing':'3.5'},zlg);
     lt.textContent='ZONE KAPPELER';
 
-    // ── Arrows from INSIDE the zone ──
-    var ag=el('g',{id:'arrows',opacity:'0'});
-    var arrs=[
-        // NW → Normandie/Bretagne
-        {fx:X(4.0),fy:Y(49.3),cx:320,cy:220,tx:175,ty:300,l:'Normandie / Bretagne',la:'end',lox:-10,loy:4},
-        // W → Pays de la Loire
-        {fx:X(4.2),fy:Y(48.0),cx:310,cy:370,tx:215,ty:420,l:'Pays de la Loire',la:'end',lox:-10,loy:4},
-        // SW → Aquitaine/Occitanie
-        {fx:X(4.8),fy:Y(47.0),cx:400,cy:550,tx:340,ty:640,l:'Aquitaine / Occitanie',la:'middle',lox:0,loy:18},
-        // S → PACA
-        {fx:X(5.0),fy:Y(46.0),cx:565,cy:570,tx:580,ty:640,l:'PACA',la:'start',lox:10,loy:4}
-    ];
-    arrs.forEach(function(a){
-        el('path',{
-            d:'M '+a.fx.toFixed(0)+','+a.fy.toFixed(0)+' Q '+a.cx+','+a.cy+' '+a.tx+','+a.ty,
-            fill:'none',stroke:'#E2001A','stroke-width':'2.5','marker-end':'url(#ah)',opacity:'0.7'
-        },ag);
-        // Label with white background for readability
-        var tlx=a.tx+a.lox, tly=a.ty+a.loy;
-        var lbl=a.l;
-        var tw=lbl.length*5.8+12; // approximate text width
-        var rectX=a.la==='end'?tlx-tw:a.la==='middle'?tlx-tw/2:tlx;
-        el('rect',{x:String(rectX-2),y:String(tly-10),width:String(tw+4),height:'14',rx:'3',fill:'rgba(255,255,255,0.92)'},ag);
-        var t=el('text',{
-            x:String(tlx),y:String(tly),
-            'text-anchor':a.la,fill:'#E2001A','font-size':'11','font-weight':'700','font-family':'Inter,sans-serif'
-        },ag);
-        t.textContent=lbl;
-    });
+    // centre du label « prise en charge sur demande » (dans la bande ambre)
+    var bmx=X(2.9), bmy=Y(46.9);
 
     // ── City points ──
-    var pg=el('g',{id:'pts'});
+    var pg=el('g',{id:'pts',filter:'url(#ptShadow)'});
     var tip=document.getElementById('tooltip');
 
     cities.forEach(function(c,idx){
@@ -395,12 +441,25 @@
             var ao=document.createElementNS(NS,'animate');ao.setAttribute('attributeName','opacity');ao.setAttribute('values','0.3;0;0.3');ao.setAttribute('dur','2.5s');ao.setAttribute('repeatCount','indefinite');pc.appendChild(ao);
         }
 
-        el('circle',{cx:String(cx),cy:String(cy),r:c.hq?'6':'4',fill:colors[c.p],stroke:'#fff','stroke-width':c.hq?'2':'1.2',class:'dot'},g);
+        el('circle',{cx:String(cx),cy:String(cy),r:c.hq?'5.5':'3.5',fill:colors[c.p],stroke:'#fff','stroke-width':c.hq?'1.6':'1',class:'dot'},g);
         var ha=el('circle',{cx:String(cx),cy:String(cy),r:'12',fill:'transparent',style:'cursor:pointer'},g);
         ha.addEventListener('mouseenter',function(e){showTip(c,e)});
         ha.addEventListener('mousemove',moveTip);
         ha.addEventListener('mouseleave',hideTip);
     });
+
+    // ── Point central + label de la zone tampon (au-dessus des villes) ──
+    var bpg=el('g',{id:'zone-buffer-pt',opacity:'0',filter:'url(#labelShadow)'});
+    var bhalo=el('circle',{cx:bmx.toFixed(1),cy:bmy.toFixed(1),r:'8',fill:'none',stroke:'#F59E0B','stroke-width':'1.5',opacity:'0.4'},bpg);
+    var bha=document.createElementNS(NS,'animate');bha.setAttribute('attributeName','r');bha.setAttribute('values','8;19;8');bha.setAttribute('dur','2.6s');bha.setAttribute('repeatCount','indefinite');bhalo.appendChild(bha);
+    var bho=document.createElementNS(NS,'animate');bho.setAttribute('attributeName','opacity');bho.setAttribute('values','0.4;0;0.4');bho.setAttribute('dur','2.6s');bho.setAttribute('repeatCount','indefinite');bhalo.appendChild(bho);
+    el('circle',{cx:bmx.toFixed(1),cy:bmy.toFixed(1),r:'6.5',fill:'#F59E0B',stroke:'#fff','stroke-width':'2.5'},bpg);
+    // pill « prise en charge sur demande »
+    var blabel='Zone prise en charge sur demande',bw=blabel.length*6.05+34,bly=bmy+30;
+    el('rect',{x:(bmx-bw/2).toFixed(1),y:(bly-13).toFixed(1),width:bw.toFixed(1),height:'26',rx:'13',fill:'#fff',stroke:'#F59E0B','stroke-width':'1.5'},bpg);
+    el('circle',{cx:(bmx-bw/2+15).toFixed(1),cy:String(bly),r:'4',fill:'#F59E0B'},bpg); // puce ambre
+    var bt=el('text',{x:(bmx+8).toFixed(1),y:(bly+4).toFixed(1),'text-anchor':'middle',fill:'#B45309','font-size':'12','font-weight':'700','font-family':'Inter,sans-serif'},bpg);
+    bt.textContent=blabel;
 
     document.getElementById('city-count').textContent=String(cities.length);
 
@@ -437,6 +496,16 @@
     function hlP(p){var pts=document.querySelectorAll('.city-point');for(var i=0;i<pts.length;i++)pts[i].style.opacity=pts[i].getAttribute('data-p')===p?'1':'0.12'}
     function resetHL(){var pts=document.querySelectorAll('.city-point');for(var i=0;i<pts.length;i++)pts[i].style.opacity=''}
 
+    // ── Menu déroulant « Réseau de pose » ──
+    var dd=document.getElementById('reseau-pose');
+    if(dd){
+        var ddh=dd.querySelector('.dropdown-header');
+        ddh.addEventListener('click',function(){
+            var open=dd.classList.toggle('open');
+            ddh.setAttribute('aria-expanded',open?'true':'false');
+        });
+    }
+
     // ── Animation ──
     function animate(){
         var fr=document.getElementById('france'),len=fr.getTotalLength();
@@ -444,12 +513,12 @@
         fr.style.transition='stroke-dashoffset 2s ease-out';
         requestAnimationFrame(function(){fr.style.strokeDashoffset='0'});
 
+        ['zone-rest','zone','zone-buffer'].forEach(function(id,k){
+            setTimeout(function(){var z=document.getElementById(id);z.style.transition='opacity .8s ease-out';z.setAttribute('opacity','1')},1300+k*180);
+        });
         setTimeout(function(){
-            var z=document.getElementById('zone');z.style.transition='opacity .8s ease-out';z.setAttribute('opacity','1');
-        },1400);
-        setTimeout(function(){
-            var a=document.getElementById('arrows');a.style.transition='opacity .6s ease-out';a.setAttribute('opacity','1');
-        },2000);
+            var zbp=document.getElementById('zone-buffer-pt');zbp.style.transition='opacity .8s ease-out';zbp.setAttribute('opacity','1');
+        },1800);
         var pts=document.querySelectorAll('.city-point');
         for(var i=0;i<pts.length;i++)(function(pt,d){
             setTimeout(function(){pt.classList.add('visible')},d);
